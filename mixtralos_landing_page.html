@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: #060a12;
+    color: #e0e8ff;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  .scanlines {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none; z-index: 0;
+  }
+
+  .noise {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  .grid-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-image:
+      linear-gradient(rgba(0,200,120,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,120,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,220,130,0.07) 0%, transparent 70%);
+    top: -200px; left: -100px; pointer-events: none; z-index: 0;
+  }
+
+  .glow-orb2 {
+    position: fixed; width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(60,100,255,0.06) 0%, transparent 70%);
+    bottom: 0; right: -100px; pointer-events: none; z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+  /* HEADER */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 0; border-bottom: 1px solid rgba(0,220,130,0.12);
+    margin-bottom: 4rem;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: #00dc82; letter-spacing: 0.15em;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .logo-dot { width: 7px; height: 7px; background: #00dc82; border-radius: 50%; animation: blink 1.4s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; padding: 4px 10px;
+    border: 1px solid rgba(0,220,130,0.3);
+    border-radius: 3px; color: #00dc82;
+  }
+
+  /* HERO */
+  .hero { text-align: center; padding: 2rem 0 3rem; }
+
+  .version-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: #00dc82; background: rgba(0,220,130,0.08);
+    border: 1px solid rgba(0,220,130,0.2); border-radius: 3px;
+    padding: 5px 14px; margin-bottom: 2rem;
+    animation: fadeIn 0.6s ease;
+  }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero h1 {
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #ffffff 0%, #00dc82 60%, #00a8ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.3rem;
+    animation: fadeIn 0.7s 0.1s ease both;
+  }
+
+  .hero-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: rgba(160,200,180,0.6);
+    letter-spacing: 0.2em; margin-bottom: 1.5rem;
+    animation: fadeIn 0.7s 0.2s ease both;
+  }
+
+  .hero p {
+    font-size: 16px; color: rgba(200,220,230,0.65);
+    max-width: 520px; margin: 0 auto 2.5rem; line-height: 1.7;
+    animation: fadeIn 0.7s 0.3s ease both;
+  }
+
+  .cta-row {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    animation: fadeIn 0.7s 0.4s ease both;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #00dc82; color: #060a12;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+    padding: 12px 24px; border-radius: 4px; border: none; cursor: pointer;
+    letter-spacing: 0.05em; transition: transform 0.15s, box-shadow 0.15s;
+    text-decoration: none;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,220,130,0.3); }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: rgba(200,220,230,0.7);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    padding: 12px 24px; border-radius: 4px; border: 1px solid rgba(200,220,230,0.15);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s; text-decoration: none;
+  }
+  .btn-ghost:hover { border-color: rgba(0,220,130,0.4); color: #00dc82; }
+
+  /* TERMINAL PREVIEW */
+  .terminal {
+    margin: 3rem 0;
+    background: #0d1117; border: 1px solid rgba(0,220,130,0.15);
+    border-radius: 8px; overflow: hidden;
+    animation: fadeIn 0.7s 0.5s ease both;
+  }
+
+  .terminal-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 14px; background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(0,220,130,0.1);
+  }
+
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .terminal-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: rgba(160,180,200,0.4); margin-left: 8px;
+  }
+
+  .terminal-body { padding: 1.25rem 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 2; }
+  .t-prompt { color: #00dc82; }
+  .t-cmd { color: #e0e8ff; }
+  .t-out { color: rgba(160,200,180,0.55); }
+  .t-green { color: #00dc82; }
+  .t-blue { color: #00a8ff; }
+  .t-cursor { display: inline-block; width: 8px; height: 14px; background: #00dc82; animation: blink 1s infinite; vertical-align: middle; }
+
+  /* FEATURES */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: #00dc82; letter-spacing: 0.2em; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(0,220,130,0.15); }
+
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: rgba(0,220,130,0.08); border: 1px solid rgba(0,220,130,0.08); border-radius: 8px; overflow: hidden; margin-bottom: 3rem; }
+
+  .feat {
+    background: #060a12; padding: 1.5rem;
+    transition: background 0.2s;
+  }
+  .feat:hover { background: #0a1020; }
+
+  .feat-icon {
+    font-size: 22px; margin-bottom: 0.8rem;
+    font-family: 'JetBrains Mono', monospace; color: #00dc82;
+  }
+
+  .feat h3 { font-size: 14px; font-weight: 700; color: #e0e8ff; margin-bottom: 0.4rem; }
+  .feat p { font-size: 12.5px; color: rgba(160,190,200,0.55); line-height: 1.6; }
+
+  /* SPECS */
+  .specs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 3rem; }
+
+  .spec-card {
+    background: rgba(0,220,130,0.04); border: 1px solid rgba(0,220,130,0.1);
+    border-radius: 6px; padding: 1.25rem;
+  }
+
+  .spec-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(0,220,130,0.6); letter-spacing: 0.15em; margin-bottom: 0.4rem; }
+  .spec-val { font-size: 15px; font-weight: 700; color: #e0e8ff; }
+
+  /* BOOT MENU */
+  .boot-menu {
+    background: #000; border: 1px solid rgba(0,220,130,0.2); border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 1.25rem 1.5rem;
+    margin-bottom: 3rem; color: #aaa;
+  }
+  .boot-title { color: #fff; margin-bottom: 0.8rem; font-size: 13px; }
+  .boot-item { padding: 4px 0; }
+  .boot-selected { color: #000; background: #aaa; display: inline-block; padding: 0 8px; }
+
+  /* DOWNLOAD */
+  .download-box {
+    border: 1px solid rgba(0,220,130,0.25); border-radius: 8px;
+    padding: 2rem; text-align: center; background: rgba(0,220,130,0.03);
+  }
+  .download-box h2 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .download-box p { font-size: 13px; color: rgba(160,200,180,0.55); margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; }
+
+  .install-steps {
+    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+    margin-top: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .step { text-align: center; color: rgba(160,200,180,0.5); }
+  .step-num { font-size: 20px; font-weight: 800; color: #00dc82; display: block; margin-bottom: 4px; }
+
+  footer {
+    text-align: center; padding: 2rem 0 0;
+    border-top: 1px solid rgba(0,220,130,0.08);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: rgba(160,200,180,0.3);
+  }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="noise"></div>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+<div class="glow-orb2"></div>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      MIXTRALOS
+    </div>
+    <div class="badge">v1.0 · BOOKWORM</div>
+  </header>
+
+  <section class="hero">
+    <div class="version-tag">
+      <span>●</span> DEBIAN 12 · PYQT6 DESKTOP · LIVE ISO
+    </div>
+    <h1>MixtralOS</h1>
+    <p class="hero-sub">LINUX. REIMAGINED.</p>
+    <p>Hệ điều hành Linux tùy chỉnh dựa trên Debian Bookworm, trang bị desktop environment viết bằng PyQt6 — khởi động từ USB, không cần cài đặt.</p>
+    <div class="cta-row">
+      <a href="https://github.com/aanhh279/MixtralrOS/releases" class="btn-primary">
+        ↓ Tải ISO
+      </a>
+      <a href="https://github.com/aanhh279/MixtralrOS" class="btn-ghost">
+        ⌥ Mã nguồn
+      </a>
+    </div>
+  </section>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">mixtralros — bash</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">mixtralr@mixtralros</span><span class="t-out">:</span><span class="t-blue">~</span><span class="t-out">$</span> <span class="t-cmd">uname -a</span></div>
+      <div class="t-out">Linux mixtralros 6.1.0-28-amd64 #1 SMP Debian 6.1.119-1 x86_64 GNU/Linux</div>
+      <div><span class="t-prompt">mixtralr@mixtralros</span><span class="t-out">:</span><span class="t-blue">~</span><span class="t-out">$</span> <span class="t-cmd">python3 -c "import PyQt6; print('PyQt6 OK')"</span></div>
+      <div class="t-green">PyQt6 OK</div>
+      <div><span class="t-prompt">mixtralr@mixtralros</span><span class="t-out">:</span><span class="t-blue">~</span><span class="t-out">$</span> <span class="t-cmd">startx /usr/bin/start-mixtralr-session</span></div>
+      <div class="t-out">[ OK ] Starting MixtralOS Desktop Environment...</div>
+      <div class="t-green">[ OK ] Desktop loaded successfully</div>
+      <div><span class="t-prompt">mixtralr@mixtralros</span><span class="t-out">:</span><span class="t-blue">~</span><span class="t-out">$</span> <span class="t-cursor"></span></div>
+    </div>
+  </div>
+
+  <div class="section-label">TÍNH NĂNG</div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">[DE]</div>
+      <h3>Custom Desktop (PyQt6)</h3>
+      <p>Toàn bộ giao diện viết từ đầu bằng Python + PyQt6: taskbar, launcher, splash screen, settings.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">[RU]</div>
+      <h3>MXL Script Engine</h3>
+      <p>Ngôn ngữ script riêng <code style="color:#00dc82">mxl-run</code> và <code style="color:#00dc82">mxl-builder</code> tích hợp sẵn trong hệ thống.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">[VG]</div>
+      <h3>Tương thích VGA rộng</h3>
+      <p>Hỗ trợ VESA, fbdev, Intel, AMD, NVIDIA basic — chạy tốt trong VirtualBox và VMware.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">[NM]</div>
+      <h3>NetworkManager</h3>
+      <p>Kết nối WiFi/LAN tự động ngay khi boot, có nm-applet trên thanh taskbar.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">[LV]</div>
+      <h3>Live Boot</h3>
+      <p>Chạy thẳng từ USB, không cần cài đặt. Dữ liệu không ghi vào ổ cứng máy chủ.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">[UE]</div>
+      <h3>BIOS + UEFI</h3>
+      <p>ISO hybrid grub-mkrescue, hỗ trợ cả máy cũ (BIOS) lẫn máy mới (UEFI Secure Boot off).</p>
+    </div>
+  </div>
+
+  <div class="section-label">THÔNG SỐ</div>
+  <div class="specs-grid">
+    <div class="spec-card">
+      <div class="spec-label">BASE</div>
+      <div class="spec-val">Debian 12 Bookworm</div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-label">ARCH</div>
+      <div class="spec-val">x86_64 (amd64)</div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-label">DESKTOP</div>
+      <div class="spec-val">PyQt6 Custom</div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-label">DISPLAY SERVER</div>
+      <div class="spec-val">Xorg + Openbox</div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-label">LOGIN</div>
+      <div class="spec-val">Auto-login TTY1</div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-label">USER</div>
+      <div class="spec-val">mixtralr / mixtralr</div>
+    </div>
+  </div>
+
+  <div class="section-label">BOOT MENU</div>
+  <div class="boot-menu">
+    <div class="boot-title">GNU GRUB — MixtralOS Boot Menu</div>
+    <div class="boot-item"><span class="boot-selected">* MixtralOS</span> <span style="color:#555">(nomodeset — VM/máy cũ)</span></div>
+    <div class="boot-item">&nbsp; MixtralOS (KMS — Intel/AMD GPU)</div>
+    <div class="boot-item">&nbsp; MixtralOS (Safe Mode — 800×600)</div>
+    <div class="boot-item">&nbsp; MixtralOS (Recovery Shell)</div>
+  </div>
+
+  <div class="section-label">TẢI VỀ</div>
+  <div class="download-box">
+    <h2>Mixtralr.iso</h2>
+    <p>Releases · github.com/aanhh279/MixtralrOS</p>
+    <div class="cta-row">
+      <a href="https://github.com/aanhh279/MixtralrOS/releases" class="btn-primary">↓ GitHub Releases</a>
+    </div>
+    <div class="install-steps">
+      <div class="step"><span class="step-num">01</span>Tải .iso</div>
+      <div class="step"><span class="step-num">02</span>Ghi vào USB<br><span style="font-size:10px">(Rufus / dd)</span></div>
+      <div class="step"><span class="step-num">03</span>Boot từ USB</div>
+      <div class="step"><span class="step-num">04</span>Đăng nhập<br><span style="font-size:10px">mixtralr/mixtralr</span></div>
+    </div>
+  </div>
+
+  <footer>
+    MixtralOS — Built with debootstrap + PyQt6 — MIT License<br>
+    <span style="opacity:0.4">github.com/aanhh279/MixtralrOS</span>
+  </footer>
+</div>
+</body>
+</html>
