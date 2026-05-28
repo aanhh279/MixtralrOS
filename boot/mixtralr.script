@@ -1,0 +1,136 @@
+# ============================================================
+# MixtralOS Plymouth Boot Theme
+# Màn hình boot: dark bg → logo → progress bar → spinner
+# ============================================================
+
+screen_width  = Window.GetWidth();
+screen_height = Window.GetHeight();
+cx = Math.Int(screen_width  / 2);
+cy = Math.Int(screen_height / 2);
+
+# ── Background ───────────────────────────────────────────────
+bg = Rectangle();
+bg.SetColor(0.05, 0.07, 0.09, 1.0);
+bg.SetSize(screen_width, screen_height);
+bg.SetPosition(0, 0);
+bg.SetLayer(-10);
+
+# Gradient stripe atas (glow biru tipis)
+glow = Rectangle();
+glow.SetColor(0.22, 0.40, 0.65, 0.12);
+glow.SetSize(screen_width, Math.Int(screen_height * 0.5));
+glow.SetPosition(0, 0);
+glow.SetLayer(-9);
+
+# ── Logo: tên "⚡ Mixtralr" ──────────────────────────────────
+logo_label = Label("Mixtralr");
+logo_label.SetColor(0.34, 0.65, 1.0, 1.0);
+logo_label.SetFont("DejaVu Sans Bold 42");
+logo_label.SetPosition(cx - 110, cy - 80);
+
+sub_label = Label("Operating System");
+sub_label.SetColor(0.55, 0.58, 0.62, 1.0);
+sub_label.SetFont("DejaVu Sans 16");
+sub_label.SetPosition(cx - 78, cy - 22);
+
+# ── Separator line ───────────────────────────────────────────
+sep = Rectangle();
+sep.SetColor(0.22, 0.40, 0.65, 0.35);
+sep.SetSize(220, 1);
+sep.SetPosition(cx - 110, cy + 12);
+
+# ── Progress bar container ───────────────────────────────────
+bar_w    = 280;
+bar_h    = 4;
+bar_x    = cx - Math.Int(bar_w / 2);
+bar_y    = cy + 64;
+
+bar_bg = Rectangle();
+bar_bg.SetColor(0.13, 0.15, 0.17, 1.0);
+bar_bg.SetSize(bar_w, bar_h);
+bar_bg.SetPosition(bar_x, bar_y);
+
+bar_fill = Rectangle();
+bar_fill.SetColor(0.34, 0.65, 1.0, 1.0);
+bar_fill.SetSize(1, bar_h);
+bar_fill.SetPosition(bar_x, bar_y);
+
+# ── Spinner dots ─────────────────────────────────────────────
+dot_count = 5;
+dot_r     = 4;
+dot_spacing = 16;
+dot_total_w = (dot_count - 1) * dot_spacing;
+dot_start_x = cx - Math.Int(dot_total_w / 2);
+dot_y     = cy + 90;
+
+dot[0] = Rectangle();
+dot[1] = Rectangle();
+dot[2] = Rectangle();
+dot[3] = Rectangle();
+dot[4] = Rectangle();
+
+for (i = 0; i < dot_count; i++) {
+    dot[i].SetColor(0.34, 0.65, 1.0, 0.25);
+    dot[i].SetSize(dot_r * 2, dot_r * 2);
+    dot[i].SetPosition(dot_start_x + i * dot_spacing - dot_r, dot_y - dot_r);
+}
+
+# ── Status text ──────────────────────────────────────────────
+status_label = Label("Đang khởi động...");
+status_label.SetColor(0.42, 0.45, 0.49, 1.0);
+status_label.SetFont("DejaVu Sans 11");
+status_label.SetPosition(cx - 80, cy + 110);
+
+# ── Version ──────────────────────────────────────────────────
+ver_label = Label("v1.0.0  •  Built with PyQt6");
+ver_label.SetColor(0.20, 0.22, 0.24, 1.0);
+ver_label.SetFont("DejaVu Sans 9");
+ver_label.SetPosition(cx - 80, screen_height - 32);
+
+# ── Tick counter ─────────────────────────────────────────────
+tick = 0;
+progress = 0;
+
+fun refresh_callback() {
+    tick++;
+
+    # Spinner animation: mỗi dot sáng lên theo thứ tự
+    active_dot = Math.Int(tick / 8) % dot_count;
+    for (i = 0; i < dot_count; i++) {
+        if (i == active_dot) {
+            dot[i].SetColor(0.34, 0.65, 1.0, 0.95);
+        } else if (Math.Abs(i - active_dot) == 1) {
+            dot[i].SetColor(0.34, 0.65, 1.0, 0.45);
+        } else {
+            dot[i].SetColor(0.34, 0.65, 1.0, 0.15);
+        }
+    }
+
+    # Glow nhịp thở nhẹ: thay đổi alpha theo sin
+    glow_alpha = 0.08 + 0.06 * Math.Sin(tick * 0.04);
+    glow.SetColor(0.22, 0.40, 0.65, glow_alpha);
+}
+
+fun boot_progress_callback(duration, progress_val) {
+    progress = progress_val;
+    fill_w = Math.Int(bar_w * progress_val);
+    if (fill_w < 2) { fill_w = 2; }
+    bar_fill.SetSize(fill_w, bar_h);
+
+    # Màu bar chuyển xanh → hijau saat 100%
+    if (progress_val > 0.9) {
+        bar_fill.SetColor(0.24, 0.73, 0.33, 1.0);
+    } else {
+        bar_fill.SetColor(0.34, 0.65, 1.0, 1.0);
+    }
+}
+
+fun update_status_callback(text) {
+    if (text != "") {
+        status_label.SetText(text);
+    }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetBootProgressFunction(boot_progress_callback);
+Plymouth.SetUpdateStatusFunction(update_status_callback);

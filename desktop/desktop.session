@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Mixtralr Desktop
+Comment=Mixtralr OS Custom PyQt6 Desktop
+Exec=/usr/bin/mixtralr-desktop
+Type=Application
+DesktopNames=Mixtralr

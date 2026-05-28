@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Tự động chọn Xorg driver phù hợp với VGA
+# Thứ tự ưu tiên: modesetting → vesa → fbdev
+
+DISPLAY="${1:-:0}"
+VTNUM="${2:-vt1}"
+LOG="/tmp/xorg-mixtralr.log"
+
+# Thử modesetting trước
+if Xorg "$DISPLAY" $VTNUM -keeptty -novtswitch \
+       -config /etc/X11/xorg.conf \
+       > "$LOG" 2>&1 &
+then
+    XPID=$!
+    sleep 3
+    if kill -0 "$XPID" 2>/dev/null && xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+        wait "$XPID"
+        exit $?
+    fi
+    kill "$XPID" 2>/dev/null || true
+fi
+
+# Fallback VESA
+cat > /tmp/xorg-vesa.conf << 'XEOF'
+Section "Device"
+    Identifier "vesa-card"
+    Driver     "vesa"
+EndSection
+Section "Screen"
+    Identifier "vesa-screen"
+    Device     "vesa-card"
+    DefaultDepth 24
+EndSection
+XEOF
+
+exec Xorg "$DISPLAY" $VTNUM -keeptty -novtswitch \
+    -config /tmp/xorg-vesa.conf >> "$LOG" 2>&1

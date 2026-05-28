@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+mkdir -p /home/mixtralr/Desktop /home/mixtralr/.config/mixtralr
+chown -R mixtralr:mixtralr /home/mixtralr/.config /home/mixtralr/Desktop

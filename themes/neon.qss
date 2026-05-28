@@ -1,0 +1,5 @@
+QMainWindow, QWidget { background-color: #0b0f16; color: #d7ecff; font-family: "DejaVu Sans"; }
+QPushButton { background-color: rgba(20,30,55,220); border: 1px solid #00d7ff; border-radius: 8px; padding: 8px; }
+QPushButton:hover { border: 1px solid #7b61ff; background-color: rgba(40,20,70,220); }
+QLineEdit, QPlainTextEdit, QTreeView { background-color: #101723; border: 1px solid #2ed3ff; }
+QLabel { color: #9ae8ff; }

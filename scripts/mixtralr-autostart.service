@@ -1,0 +1,11 @@
+[Unit]
+Description=Mixtralr user bootstrap service
+After=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/mixtralr-user-bootstrap
+RemainAfterExit=true
+
+[Install]
+WantedBy=graphical.target
