@@ -1,0 +1,47 @@
+name: Build MixtralOS ISO
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            debootstrap squashfs-tools xorriso \
+            grub-pc-bin grub-efi-amd64-bin grub-common \
+            mtools dosfstools rsync
+
+      - name: Make build script executable
+        run: chmod +x build/build.sh
+
+      - name: Build ISO
+        run: sudo bash build/build.sh
+
+      - name: Verify ISO
+        run: |
+          ls -lh fileOS/Mixtralr.iso
+          echo "ISO_SIZE=$(du -sh fileOS/Mixtralr.iso | cut -f1)" >> $GITHUB_ENV
+
+      - name: Create GitHub Release and upload ISO
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "MixtralOS Build #${{ github.run_number }}"
+          body: |
+            **Build:** #${{ github.run_number }}
+            **Commit:** ${{ github.sha }}
+            **Size:** ${{ env.ISO_SIZE }}
+          files: fileOS/Mixtralr.iso
